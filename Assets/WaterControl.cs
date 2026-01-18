@@ -3,34 +3,33 @@ using TMPro;
 
 public class WaterControl : MonoBehaviour
 {
+    [Header("Scene Objects")]
     public Transform arCamera; 
     public TMP_Text levelText;
     public ChartController myChart; 
+    
+    // LINK THE NEW SYSTEM HERE
+    public Transform floodRuler; 
 
     private float targetHeight = 0.0f; 
     
-    // ADJUST THIS IF NEEDED (You said -13.0 worked well)
+    // Your floor calibration (Adjust if floor is too high/low)
     private float floorOffset = 13.0f; 
 
-    // --- GROUP A: AR VISUALS (What looks good in the room) ---
-    // These are the numbers you found that fit your room perfectly.
+    // --- VISUAL DATA (What looks good in the room) ---
     private float waterVisual_Normal = 0f;
     private float waterVisual_2013 = 8f;   
     private float waterVisual_Future = 12f; 
 
-    // --- GROUP B: REAL DATA (What looks good on the Graph) ---
-    // These are the "Real" values (12.9m and 15.0m scaled x10)
-    // The chart max is 160, so these will look tall and dramatic!
+    // --- REAL DATA (For the Chart & Text) ---
     private float realData_Normal = 0f;
     private float realData_2013 = 129f;   
     private float realData_Future = 150f;
 
-    // We need to remember which "Real Data" is currently active for the text label
     private float currentRealData = 0f;
 
     void Start()
     {
-        // 1. Send the DRAMATIC REAL DATA to the chart
         if (myChart != null)
         {
             myChart.UpdateChartPositions(realData_Normal, realData_2013, realData_Future);
@@ -41,17 +40,26 @@ public class WaterControl : MonoBehaviour
     {
         if (arCamera == null) return;
 
-        // --- MOVE WATER (Uses the Visual Numbers) ---
+        // 1. Calculate Floor Level
         float cameraHeight = arCamera.position.y;
         float floorLevel = cameraHeight - floorOffset;
-        float goalY = floorLevel + targetHeight;
 
+        // 2. Move the RULER to the floor
+        if (floodRuler != null)
+        {
+            // Since we fixed the pivot using the "System" parent,
+            // we can just place it directly at floorLevel!
+            floodRuler.position = new Vector3(floodRuler.position.x, floorLevel, floodRuler.position.z);
+        }
+
+        // 3. Move the WATER
+        float goalY = floorLevel + targetHeight;
         float currentY = transform.position.y;
         float smoothedY = Mathf.Lerp(currentY, goalY, Time.deltaTime * 2.0f);
+        
         transform.position = new Vector3(transform.position.x, smoothedY, transform.position.z);
 
-        // --- UPDATE TEXT (Uses the Real Data Numbers) ---
-        // This makes the text say "12.90m" even though the water is only at height 8.
+        // 4. Update Text
         if (levelText != null)
         {
              float displayMeters = currentRealData / 10.0f;
@@ -60,25 +68,21 @@ public class WaterControl : MonoBehaviour
     }
 
     // --- BUTTONS ---
-
     public void Click_Normal() {
-        targetHeight = waterVisual_Normal; // Set Water to 0
-        currentRealData = realData_Normal; // Set Text to 0m
-        
+        targetHeight = waterVisual_Normal; 
+        currentRealData = realData_Normal; 
         if(myChart != null) myChart.ShowStep1(); 
     }
 
     public void Click_2013() {
-        targetHeight = waterVisual_2013;   // Set Water to 8 (Looks good in room)
-        currentRealData = realData_2013;   // Set Text to 12.9m (Historic accuracy)
-        
+        targetHeight = waterVisual_2013;
+        currentRealData = realData_2013;
         if(myChart != null) myChart.ShowStep2(); 
     }
 
     public void Click_Future() {
-        targetHeight = waterVisual_Future; // Set Water to 12 (Looks good in room)
-        currentRealData = realData_Future; // Set Text to 15.0m (Extreme accuracy)
-        
+        targetHeight = waterVisual_Future;
+        currentRealData = realData_Future;
         if(myChart != null) myChart.ShowStep3(); 
     }
 }
