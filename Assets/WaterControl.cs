@@ -19,12 +19,12 @@ public class WaterControl : MonoBehaviour
     // --- VISUAL DATA (What looks good in the room) ---
     private float waterVisual_Normal = 0f;
     private float waterVisual_2013 = 8f;   
-    private float waterVisual_Future = 12f; 
+    private float waterVisual_Future = 10f; 
 
     // --- REAL DATA (For the Chart & Text) ---
     private float realData_Normal = 0f;
     private float realData_2013 = 129f;   
-    private float realData_Future = 150f;
+    private float realData_Future = 140f;
 
     private float currentRealData = 0f;
 
