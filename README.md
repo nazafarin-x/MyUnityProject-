@@ -1,6 +1,3 @@
-Based on your project details, here is a professional and clear README file. You can save this as README.txt or README.md and include it in your submission folder.
-
-It covers all the requirements: how to start, controls, and vital technical info.
 
 README - DanubeAR: Immersive Flood Visualization
 
