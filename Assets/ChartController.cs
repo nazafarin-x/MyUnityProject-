@@ -1,25 +1,28 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+// UI VISUALIZATION SCRIPT: 
+// Manages a dynamic line chart that connects data points (Normal -> 2013 -> Future).
+// Uses Vector math to procedurally draw lines between UI elements.
 public class ChartController : MonoBehaviour
 {
-    [Header("Dots")]
+    [Header("UI Elements (Dots)")]
     public RectTransform dotNormal;
     public RectTransform dot2013;
     public RectTransform dotFuture;
 
-    [Header("Lines")]
+    [Header("UI Elements (Connecting Lines)")]
     public RectTransform line1; // Connects Normal -> 2013
     public RectTransform line2; // Connects 2013 -> Future
 
-    // Chart Settings
-    private float chartHeight = 200f; 
-    private float maxDataValue = 160f; 
+    // Chart Configuration
+    private float chartHeight = 200f; // Max pixel height of the graph area
+    private float maxDataValue = 160f; // The maximum value the graph can display
 
     void Start()
     {
-        // HIDE everything when the app starts!
-        // We want the chart to look empty until the user clicks.
+        // INITIALIZATION: Hide all graph elements on startup.
+        // The chart starts empty and reveals steps as the user interacts.
         dotNormal.gameObject.SetActive(false);
         dot2013.gameObject.SetActive(false);
         dotFuture.gameObject.SetActive(false);
@@ -27,7 +30,8 @@ public class ChartController : MonoBehaviour
         line2.gameObject.SetActive(false);
     }
 
-    // 1. Calculate positions (Same as before)
+    // 1. DATA MAPPING: Converts raw data values into UI Y-coordinates
+    // Normalizes the value (0 to 1) and scales it to the chart height.
     public void UpdateChartPositions(float valNormal, float val2013, float valFuture)
     {
         float y1 = (valNormal / maxDataValue) * chartHeight;
@@ -39,7 +43,9 @@ public class ChartController : MonoBehaviour
         SetDotPosition(dotFuture, y3);
     }
 
-    // 2. Reveal Functions (Called by Buttons)
+    // 2. PROGRESSIVE REVEAL SYSTEM
+    // These methods are called sequentially by the main 'WaterControl' script.
+    
     public void ShowStep1()
     {
         dotNormal.gameObject.SetActive(true);
@@ -47,44 +53,49 @@ public class ChartController : MonoBehaviour
 
     public void ShowStep2()
     {
-        ShowStep1(); // Ensure step 1 is visible
+        ShowStep1(); // Dependency: Ensure previous step is visible
         dot2013.gameObject.SetActive(true);
-        // Draw the line between Dot 1 and Dot 2
+        
+        // Procedurally draw the connection line
         ConnectDots(line1, dotNormal, dot2013);
     }
 
     public void ShowStep3()
     {
-        ShowStep2(); // Ensure step 2 is visible
+        ShowStep2(); // Dependency: Ensure previous step is visible
         dotFuture.gameObject.SetActive(true);
-        // Draw the line between Dot 2 and Dot 3
+        
+        // Procedurally draw the connection line
         ConnectDots(line2, dot2013, dotFuture);
     }
 
     // --- HELPER FUNCTIONS ---
 
+    // Updates the anchored position of a specific dot
     void SetDotPosition(RectTransform dot, float y)
     {
-        // -100 because the pivot is center, moving from bottom
+        // Subtracts 100 to offset the pivot point (centering the chart vertically)
         dot.anchoredPosition = new Vector2(dot.anchoredPosition.x, y - 100);
     }
 
+    // MATH & GEOMETRY: Calculates position, rotation, and size to connect two points
     void ConnectDots(RectTransform line, RectTransform startDot, RectTransform endDot)
     {
         line.gameObject.SetActive(true);
 
-        // A. Move line to the center point between the two dots
+        // A. POSITION: Place the line at the midpoint between the two dots
         Vector3 centerPos = (startDot.position + endDot.position) / 2f;
         line.position = centerPos;
 
-        // B. Calculate direction to figure out length and angle
+        // B. DIRECTION: Calculate vector from start to end
         Vector3 direction = endDot.position - startDot.position;
-        float distance = direction.magnitude;
+        float distance = direction.magnitude; // Length of the line
 
-        // C. Stretch the line (Width = distance, Height = 4)
+        // C. SCALE: Set width equal to distance, height fixed at 4px
         line.sizeDelta = new Vector2(distance, 4f);
 
-        // D. Rotate the line to point at the next dot
+        // D. ROTATION: Use Trigonometry (Atan2) to calculate the angle
+        // Converts the direction vector into a rotation angle in degrees
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         line.rotation = Quaternion.Euler(0, 0, angle);
     }
